@@ -1,10 +1,10 @@
 package com.example.photostudio.utils;
 
+import com.example.photostudio.dto.UserProfileDto;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -13,21 +13,14 @@ import java.util.function.Function;
 @Component
 public class JwtUtil {
 
-    private String secret;
-    private int jwtExpirationInMs;
+    @Value("${jwt.JWT_SECRET}")
+    private String JWT_SECRET;
 
-    @Value("${jwt.secret}")
-    public void setSecret(String secret) {
-        this.secret = secret;
-    }
-
-    @Value("${jwt.expirationDateInMs}")
-    public void setJwtExpirationInMs(int jwtExpirationInMs) {
-        this.jwtExpirationInMs = jwtExpirationInMs;
-    }
+    @Value("${jwt.EXPIRATION_TIME}")
+    private int EXPIRATION_TIME;
 
     // generate token for user
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(UserProfileDto userProfileDto) {
         Map<String, Object> claims = new HashMap<>();
         /*Collection<? extends GrantedAuthority> roles = userDetails.getAuthorities();
         if (roles.contains(new SimpleGrantedAuthority("ROLE_ADMIN"))) {
@@ -36,12 +29,12 @@ public class JwtUtil {
         if (roles.contains(new SimpleGrantedAuthority("ROLE_USER"))) {
             claims.put("isUser", true);
         }*/
-        return createToken(claims, userDetails.getUsername());
+        return createToken(claims, userProfileDto.getUsername());
     }
 
-    public boolean validateToken(String token, UserDetails userDetails) {
+    public boolean validateToken(String token, UserProfileDto userProfileDto) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        return (username.equals(userProfileDto.getUsername()) && !isTokenExpired(token));
     }
 
     private boolean isTokenExpired(String token) {
@@ -54,7 +47,7 @@ public class JwtUtil {
                 .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationInMs)).signWith(SignatureAlgorithm.HS256, secret).compact();
+                .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME)).signWith(SignatureAlgorithm.HS256, JWT_SECRET).compact();
     }
 
 
@@ -74,7 +67,7 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+        return Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(token).getBody();
     }
 
 /*    private List<SimpleGrantedAuthority> getRolesFromToken(String token) {

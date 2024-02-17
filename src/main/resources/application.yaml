@@ -9,5 +9,10 @@ spring:
       ddl-auto: update
     show-sql: true
 jwt:
-  secret: abcd
-  jwtExpirationInMs: 18000000
+  JWT_SECRET: abcd
+  EXPIRATION_TIME: 18000000
+logging:
+  level:
+    org:
+      springframework:
+        security: DEBUG
