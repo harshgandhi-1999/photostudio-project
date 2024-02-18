@@ -6,6 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -25,6 +28,8 @@ public class User {
     private String name;
 
     private String email;
-/*
-    private List<Album> albums = new ArrayList<>();*/
+
+    @OneToMany(cascade = {CascadeType.MERGE,CascadeType.REFRESH,CascadeType.DETACH,CascadeType.REMOVE},fetch = FetchType.EAGER,mappedBy = "userId")
+    @Column(name = "albums")
+    private List<Album> albums = new ArrayList<>();
 }

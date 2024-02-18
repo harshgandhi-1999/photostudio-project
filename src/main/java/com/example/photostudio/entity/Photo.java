@@ -20,7 +20,5 @@ public class Photo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer photoId;
 
-    //private Album albumId;
-
     private String url;
 }

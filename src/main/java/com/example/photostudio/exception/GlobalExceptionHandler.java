@@ -25,7 +25,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(NotAuthorizedException.class)
-    public ResponseEntity<ErrorResponseDto> handleNotAuthorizedException(NotAuthorizedException exception,WebRequest webRequest){
+    public ResponseEntity<ErrorResponseDto> handleNotAuthorizedException(NotAuthorizedException exception, WebRequest webRequest) {
         ErrorResponseDto errorResponseDto = new ErrorResponseDto(
                 webRequest.getDescription(false),
                 HttpStatus.UNAUTHORIZED,
@@ -33,11 +33,11 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now()
         );
 
-        return new ResponseEntity<>(errorResponseDto,HttpStatus.UNAUTHORIZED);
+        return new ResponseEntity<>(errorResponseDto, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(UserAlreadyExistException.class)
-    public ResponseEntity<ErrorResponseDto> handleUserAlreadyExistException(NotAuthorizedException exception,WebRequest webRequest){
+    public ResponseEntity<ErrorResponseDto> handleUserAlreadyExistException(UserAlreadyExistException exception, WebRequest webRequest) {
         ErrorResponseDto errorResponseDto = new ErrorResponseDto(
                 webRequest.getDescription(false),
                 HttpStatus.BAD_REQUEST,
@@ -45,6 +45,6 @@ public class GlobalExceptionHandler {
                 LocalDateTime.now()
         );
 
-        return new ResponseEntity<>(errorResponseDto,HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponseDto, HttpStatus.BAD_REQUEST);
     }
 }

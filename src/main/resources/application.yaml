@@ -10,7 +10,7 @@ spring:
     show-sql: true
 jwt:
   JWT_SECRET: abcd
-  EXPIRATION_TIME: 18000000
+  EXPIRATION_TIME: 43200000 #1hr
 logging:
   level:
     org:
