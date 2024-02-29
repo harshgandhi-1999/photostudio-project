@@ -69,15 +69,15 @@ public class AlbumServiceImpl implements AlbumService {
             throw new ResourceNotFoundException("User", "username", username);
         }
 
-        Optional<Album> optionalAlbum = albumRepository.findById(albumDto.getAlbumId());
-        if(optionalAlbum.isEmpty()){
-            throw new ResourceNotFoundException("Album","albumId",albumDto.getAlbumId().toString());
+        Optional<Album> optionalAlbum = albumRepository.findByAlbumIdAndUser(albumDto.getAlbumId(), optionalUser.get());
+        if (optionalAlbum.isEmpty()) {
+            throw new ResourceNotFoundException("Album", "albumId", albumDto.getAlbumId().toString());
         }
 
         Album album = optionalAlbum.get();
         //check if the album name is "default" then don't update
-        if(Objects.equals(album.getAlbumName(), "default")){
-            throw new CannotPerformOperationException("UPDATE","album","albumName",album.getAlbumName());
+        if (Objects.equals(album.getAlbumName(), "default")) {
+            throw new CannotPerformOperationException("UPDATE", "album", "albumName", album.getAlbumName());
         }
 
         // update album name
@@ -90,6 +90,38 @@ public class AlbumServiceImpl implements AlbumService {
         albumDto = albumMapper.albumToAlbumDto(album);
         ResponseDto responseDto = new ResponseDto(HttpStatus.OK.toString(), "Album updated successfully");
 
-        return new AlbumResponseDto(albumDto,responseDto);
+        return new AlbumResponseDto(albumDto, responseDto);
+    }
+
+    @Override
+    public ResponseDto deleteAlbum(Integer albumId, String username) {
+        logger.info("DELETE ALBUM");
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+
+        if (optionalUser.isEmpty()) {
+            throw new ResourceNotFoundException("User", "username", username);
+        }
+
+        Optional<Album> optionalAlbum = albumRepository.findByAlbumIdAndUser(albumId, optionalUser.get());
+        if (optionalAlbum.isEmpty()) {
+            throw new ResourceNotFoundException("Album", "albumId", albumId.toString());
+        }
+
+        Album album = optionalAlbum.get();
+
+        //check if the album name is "default" then don't delete
+        if (Objects.equals(album.getAlbumName(), "default")) {
+            throw new CannotPerformOperationException("DELETE", "album", "albumName", album.getAlbumName());
+        }
+
+        logger.info("ALBUM TO DELETE: " + album.getAlbumId() + ", " + album.getAlbumName() + ", " + album.getUser().getUserId());
+
+        // delete
+        // you need to remove cascade type PERSIST from  parent entity to below line to work
+        // https://stackoverflow.com/questions/29172313/spring-data-repository-does-not-delete-manytoone-entity
+        albumRepository.delete(album);
+
+        // generate response
+        return new ResponseDto(HttpStatus.OK.toString(), "Album deleted successfully");
     }
 }
