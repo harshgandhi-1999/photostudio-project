@@ -1,16 +1,14 @@
 package com.example.photostudio.entity;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Entity
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder(toBuilder = true)
 public class Album {
 
     @Id
@@ -21,9 +19,9 @@ public class Album {
     @Column(name = "album_name")
     private String albumName;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
-    private User userId;
+    private User user;
 
     //private List<Photo> photos = new ArrayList<>();
 }

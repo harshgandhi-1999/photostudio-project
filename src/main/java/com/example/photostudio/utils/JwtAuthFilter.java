@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -33,8 +34,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         logger.info("token = " + token);
         if (token != null) {
             try {
-                jwtTokenProvider.validateToken(token);
-                Authentication auth = jwtTokenProvider.getAuthentication(token);
+                UserDetails userDetails = jwtTokenProvider.getUserDetails(token);
+
+                if(!jwtTokenProvider.validateToken(request,userDetails,token)){
+                    filterChain.doFilter(request, response);
+                    return;
+                }
+
+                Authentication auth = jwtTokenProvider.getAuthentication(userDetails);
                 //setting auth in the context.
                 SecurityContextHolder.getContext().setAuthentication(auth);
             } catch (JwtException | IllegalArgumentException e) {

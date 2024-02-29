@@ -1,5 +1,6 @@
 package com.example.photostudio.utils;
 
+import com.example.photostudio.dto.UserProfileDto;
 import com.example.photostudio.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -47,23 +48,36 @@ public class JwtTokenProvider {
         return null;
     }
 
-    public void validateToken(String token) throws JwtException, IllegalArgumentException {
+    public boolean validateToken(HttpServletRequest request,UserDetails userDetails,String token) throws JwtException, IllegalArgumentException {
         Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(token);
+        String username = extractUsername(token);
+        String usernameQueryParam = request.getParameter("username");
+
+        if(username==null || usernameQueryParam==null || userDetails==null){
+            return false;
+        }
+
+        return username.equals(usernameQueryParam) && username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
     }
 
-    public Authentication getAuthentication(String token) {
-        //using database: uncomment when you want to fetch data from data base
-        UserDetails userDetails = userService.loadUserByUsername(extractUsername(token));
+    public Authentication getAuthentication(UserDetails userDetails) {
+        // can use any method below:
+
+        //UserDetails userDetails = userService.loadUserByUsername(extractUsername(token));
         //UserProfileDto userProfileDto = userService.getUserByUsername(extractUsername(token));
 
-        //from token take user value. comment below line for changing it taking from data base
-        // org.springframework.security.core.userdetails.UserDetails userDetails = getUserDetails(token);
-        return new UsernamePasswordAuthenticationToken(userDetails, null,userDetails.getAuthorities());
 
+        // can also pass userDetails.getAuthorities() instead of null.
+        return new UsernamePasswordAuthenticationToken(userDetails, null,null);
+
+    }
+
+    public UserDetails getUserDetails(String token){
+        return userService.loadUserByUsername(extractUsername(token));
     }
 
     private String createToken(Map<String, Object> claims, String subject) {

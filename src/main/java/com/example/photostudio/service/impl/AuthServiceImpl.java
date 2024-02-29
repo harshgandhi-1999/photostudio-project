@@ -1,19 +1,20 @@
 package com.example.photostudio.service.impl;
 
 import com.example.photostudio.dto.*;
+import com.example.photostudio.entity.Album;
 import com.example.photostudio.entity.User;
 import com.example.photostudio.exception.NotAuthorizedException;
 import com.example.photostudio.exception.ResourceNotFoundException;
 import com.example.photostudio.exception.UserAlreadyExistException;
 import com.example.photostudio.mapper.UserMapper;
+import com.example.photostudio.repository.AlbumRepository;
 import com.example.photostudio.repository.UserRepository;
 import com.example.photostudio.service.AuthService;
 import com.example.photostudio.utils.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.logging.Logger;
 
 @Service
@@ -21,6 +22,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private AlbumRepository albumRepository;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -32,8 +36,9 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponseDto authenticateUser(LoginRequestDto loginRequestDto) {
+        logger.info("AUTHENTICATE USER SERVICE");
         // check if user exists or not
-        Optional<User> optionalUser = userAlreadyExist(loginRequestDto.getUsername());
+        Optional<User> optionalUser = userRepository.findByUsername(loginRequestDto.getUsername());
 
         if (optionalUser.isEmpty()) {
             throw new ResourceNotFoundException("User", "username", loginRequestDto.getUsername());
@@ -56,23 +61,32 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public void createUser(SignupRequestDto signupRequestDto) {
-        logger.info("Create user");
+        logger.info("CREATE USER SERVICE");
         // check if user exists or not
-        Optional<User> optionalUser = userAlreadyExist(signupRequestDto.getUsername());
+        Optional<User> optionalUser = userRepository.findByUsername(signupRequestDto.getUsername());
 
         if (optionalUser.isPresent()) {
             throw new UserAlreadyExistException(signupRequestDto.getUsername());
         }
 
-        //create user
-        User user = userMapper.signUpRequestDtoToUser(signupRequestDto);
 
-        // save user
+        User user = User.builder()
+                .username(signupRequestDto.getUsername())
+                .password(signupRequestDto.getPassword())
+                .name(signupRequestDto.getName())
+                .email(signupRequestDto.getEmail())
+                .build();
+        // create default album
+        Album album = Album.builder()
+                        .albumName("default")
+                        .user(user)
+                        .build();
+        user.setAlbums(List.of(album));
+
+        logger.info("ALBUM = " + album.toString());
+        logger.info("USER = " + user.toString());
+
+        // save in database
         userRepository.save(user);
-    }
-
-
-    private Optional<User> userAlreadyExist(String username) {
-        return userRepository.findByUsername(username);
     }
 }
