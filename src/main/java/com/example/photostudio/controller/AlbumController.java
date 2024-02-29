@@ -1,5 +1,6 @@
 package com.example.photostudio.controller;
 
+import com.example.photostudio.dto.AlbumDto;
 import com.example.photostudio.dto.AlbumRequestDto;
 import com.example.photostudio.dto.AlbumResponseDto;
 import com.example.photostudio.service.AlbumService;
@@ -17,7 +18,14 @@ public class AlbumController {
 
     @PostMapping("/create")
     public ResponseEntity<AlbumResponseDto> createAlbum(@RequestBody AlbumRequestDto albumRequestDto, @RequestParam String username) {
-        AlbumResponseDto albumResponseDto = albumService.createNewAlbum(albumRequestDto,username);
+        AlbumResponseDto albumResponseDto = albumService.createNewAlbum(albumRequestDto, username);
+
+        return ResponseEntity.status(HttpStatus.OK).body(albumResponseDto);
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<AlbumResponseDto> updateAlbum(@RequestBody AlbumDto albumDto, @RequestParam String username) {
+        AlbumResponseDto albumResponseDto = albumService.updateAlbum(albumDto,username);
 
         return ResponseEntity.status(HttpStatus.OK).body(albumResponseDto);
     }

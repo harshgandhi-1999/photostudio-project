@@ -6,6 +6,7 @@ import com.example.photostudio.dto.AlbumResponseDto;
 import com.example.photostudio.dto.ResponseDto;
 import com.example.photostudio.entity.Album;
 import com.example.photostudio.entity.User;
+import com.example.photostudio.exception.CannotPerformOperationException;
 import com.example.photostudio.exception.ResourceNotFoundException;
 import com.example.photostudio.mapper.AlbumMapper;
 import com.example.photostudio.repository.AlbumRepository;
@@ -15,6 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -56,5 +58,38 @@ public class AlbumServiceImpl implements AlbumService {
         ResponseDto responseDto = new ResponseDto(HttpStatus.OK.toString(), "Album created successfully");
 
         return new AlbumResponseDto(albumDto, responseDto);
+    }
+
+    @Override
+    public AlbumResponseDto updateAlbum(AlbumDto albumDto, String username) {
+        logger.info("UPDATE ALBUM");
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+
+        if (optionalUser.isEmpty()) {
+            throw new ResourceNotFoundException("User", "username", username);
+        }
+
+        Optional<Album> optionalAlbum = albumRepository.findById(albumDto.getAlbumId());
+        if(optionalAlbum.isEmpty()){
+            throw new ResourceNotFoundException("Album","albumId",albumDto.getAlbumId().toString());
+        }
+
+        Album album = optionalAlbum.get();
+        //check if the album name is "default" then don't update
+        if(Objects.equals(album.getAlbumName(), "default")){
+            throw new CannotPerformOperationException("UPDATE","album","albumName",album.getAlbumName());
+        }
+
+        // update album name
+        album.setAlbumName(albumDto.getAlbumName());
+
+        // save updated album in db
+        album = albumRepository.save(album);
+
+        // generate response
+        albumDto = albumMapper.albumToAlbumDto(album);
+        ResponseDto responseDto = new ResponseDto(HttpStatus.OK.toString(), "Album updated successfully");
+
+        return new AlbumResponseDto(albumDto,responseDto);
     }
 }
