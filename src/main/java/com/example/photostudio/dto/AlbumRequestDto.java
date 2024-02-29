@@ -8,7 +8,6 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-public class AlbumDto {
-    private Integer albumId;
+public class AlbumRequestDto {
     private String albumName;
 }

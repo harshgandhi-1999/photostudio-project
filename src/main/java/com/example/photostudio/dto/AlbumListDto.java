@@ -1,10 +1,15 @@
 package com.example.photostudio.dto;
 
-import lombok.Data;
+import lombok.*;
 
 import java.util.List;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Getter
+@Setter
+@ToString
 public class AlbumListDto {
-    List<AlbumDto> albums;
+    private List<AlbumDto> albums;
 }

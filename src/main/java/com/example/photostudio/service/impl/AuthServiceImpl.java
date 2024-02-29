@@ -78,9 +78,9 @@ public class AuthServiceImpl implements AuthService {
                 .build();
         // create default album
         Album album = Album.builder()
-                        .albumName("default")
-                        .user(user)
-                        .build();
+                .albumName("default")
+                .user(user)
+                .build();
         user.setAlbums(List.of(album));
 
         logger.info("ALBUM = " + album.toString());
