@@ -69,6 +69,9 @@ public class AlbumServiceImpl implements AlbumService {
             throw new ResourceNotFoundException("User", "username", username);
         }
 
+        // Imp: we need to do findByAlbumIdAndUser because by chance some other albumId is passed which of some other user and if we do findById on albumId
+        // and then update, then some other user's album name will get updated.
+
         Optional<Album> optionalAlbum = albumRepository.findByAlbumIdAndUser(albumDto.getAlbumId(), optionalUser.get());
         if (optionalAlbum.isEmpty()) {
             throw new ResourceNotFoundException("Album", "albumId", albumDto.getAlbumId().toString());

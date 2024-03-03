@@ -8,7 +8,9 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-public class AlbumResponseDto {
-    private AlbumDto albumDto;
-    private ResponseDto result;
+public class PhotoDto {
+    private Integer photoId;
+    private String url;
+    private String tag;
+    private AlbumDto album;
 }

@@ -21,17 +21,17 @@ public class CloudinaryServiceImpl implements CloudinaryService {
 
     @Override
     public String upload(MultipartFile file) {
-        try{
+        try {
             HashMap<Object, Object> options = new HashMap<>();
             options.put("folder", "my-gallery");
             Map uploadedFile = cloudinary.uploader().upload(file.getBytes(), options);
             String publicId = (String) uploadedFile.get("public_id");
-            String url =  cloudinary.url().secure(true).generate(publicId);
+            String url = cloudinary.url().secure(true).generate(publicId);
             logger.info("URL = " + url);
             return url;
-        }catch (IOException e){
+        } catch (IOException e) {
             e.printStackTrace();
-            return null;
+            throw new RuntimeException(e.getMessage());
         }
     }
 }

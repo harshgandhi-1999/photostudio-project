@@ -8,7 +8,8 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-public class AlbumResponseDto {
-    private AlbumDto albumDto;
+public class PhotoUploadResponseDto {
+
+    private PhotoDto photo;
     private ResponseDto result;
 }

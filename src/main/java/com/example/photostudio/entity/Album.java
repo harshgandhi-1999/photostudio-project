@@ -3,6 +3,8 @@ package com.example.photostudio.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -23,5 +25,6 @@ public class Album {
     @JoinColumn(name = "user_id")
     private User user;
 
-    //private List<Photo> photos = new ArrayList<>();
+    @OneToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE}, fetch = FetchType.EAGER, mappedBy = "album")
+    private List<Photo> photos;
 }
