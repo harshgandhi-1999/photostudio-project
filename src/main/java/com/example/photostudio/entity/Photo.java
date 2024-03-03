@@ -15,6 +15,8 @@ public class Photo {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer photoId;
 
+    private String name;
+
     private String url;
 
     private String tag;

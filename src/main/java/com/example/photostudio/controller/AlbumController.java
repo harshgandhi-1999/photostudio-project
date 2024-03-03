@@ -1,9 +1,6 @@
 package com.example.photostudio.controller;
 
-import com.example.photostudio.dto.AlbumDto;
-import com.example.photostudio.dto.AlbumRequestDto;
-import com.example.photostudio.dto.AlbumResponseDto;
-import com.example.photostudio.dto.ResponseDto;
+import com.example.photostudio.dto.*;
 import com.example.photostudio.service.AlbumService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,5 +33,11 @@ public class AlbumController {
         ResponseDto responseDto = albumService.deleteAlbum(albumId, username);
 
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
+    @GetMapping("/photos")
+    public ResponseEntity<PhotoListDto> getPhotos(@RequestParam Integer albumId, @RequestParam String username){
+        PhotoListDto photoListDto = albumService.getAllPhotos(albumId,username);
+        return ResponseEntity.status(HttpStatus.OK).body(photoListDto);
     }
 }

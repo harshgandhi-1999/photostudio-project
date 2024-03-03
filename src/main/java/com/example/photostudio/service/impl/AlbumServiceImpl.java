@@ -1,9 +1,6 @@
 package com.example.photostudio.service.impl;
 
-import com.example.photostudio.dto.AlbumDto;
-import com.example.photostudio.dto.AlbumRequestDto;
-import com.example.photostudio.dto.AlbumResponseDto;
-import com.example.photostudio.dto.ResponseDto;
+import com.example.photostudio.dto.*;
 import com.example.photostudio.entity.Album;
 import com.example.photostudio.entity.User;
 import com.example.photostudio.exception.CannotPerformOperationException;
@@ -126,5 +123,22 @@ public class AlbumServiceImpl implements AlbumService {
 
         // generate response
         return new ResponseDto(HttpStatus.OK.toString(), "Album deleted successfully");
+    }
+
+    @Override
+    public PhotoListDto getAllPhotos(Integer albumId, String username) {
+        logger.info("GET ALL PHOTOS");
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+
+        if (optionalUser.isEmpty()) {
+            throw new ResourceNotFoundException("User", "username", username);
+        }
+
+        Optional<Album> optionalAlbum = albumRepository.findByAlbumIdAndUser(albumId, optionalUser.get());
+        if (optionalAlbum.isEmpty()) {
+            throw new ResourceNotFoundException("Album", "albumId", albumId.toString());
+        }
+
+        return albumMapper.albumToPhotoListDto(optionalAlbum.get());
     }
 }

@@ -67,6 +67,7 @@ public class PhotoServiceImpl implements PhotoService {
         // Create new Photo
         Photo photo = Photo.builder()
                 .tag(photoUploadDto.getTag())
+                .name(photoUploadDto.getFile().getOriginalFilename())
                 .url(url)
                 .album(album)
                 .build();

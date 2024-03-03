@@ -1,9 +1,6 @@
 package com.example.photostudio.service;
 
-import com.example.photostudio.dto.AlbumDto;
-import com.example.photostudio.dto.AlbumRequestDto;
-import com.example.photostudio.dto.AlbumResponseDto;
-import com.example.photostudio.dto.ResponseDto;
+import com.example.photostudio.dto.*;
 
 public interface AlbumService {
     AlbumResponseDto createNewAlbum(AlbumRequestDto albumRequestDto, String username);
@@ -11,4 +8,6 @@ public interface AlbumService {
     AlbumResponseDto updateAlbum(AlbumDto albumDto, String username);
 
     ResponseDto deleteAlbum(Integer albumId, String username);
+
+    PhotoListDto getAllPhotos(Integer albumId, String username);
 }
