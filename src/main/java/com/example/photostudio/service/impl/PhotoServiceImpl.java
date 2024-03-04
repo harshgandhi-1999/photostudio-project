@@ -1,9 +1,6 @@
 package com.example.photostudio.service.impl;
 
-import com.example.photostudio.dto.PhotoDto;
-import com.example.photostudio.dto.PhotoUploadDto;
-import com.example.photostudio.dto.PhotoUploadResponseDto;
-import com.example.photostudio.dto.ResponseDto;
+import com.example.photostudio.dto.*;
 import com.example.photostudio.entity.Album;
 import com.example.photostudio.entity.Photo;
 import com.example.photostudio.entity.User;
@@ -17,8 +14,12 @@ import com.example.photostudio.service.CloudinaryService;
 import com.example.photostudio.service.PhotoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -80,5 +81,28 @@ public class PhotoServiceImpl implements PhotoService {
         ResponseDto responseDto = new ResponseDto(HttpStatus.CREATED.toString(), "Photo uploaded successfully");
 
         return new PhotoUploadResponseDto(photoDto, responseDto);
+    }
+
+    @Override
+    public List<PhotoByTagDto> getAllPhotosByTag(String tag) {
+        if(tag==null || tag.isEmpty()){
+            throw new ResourceNotFoundException("Photo","tag",null);
+        }
+
+        List<Photo> photosFromDb = photoRepository.findAllByTag(tag);
+
+        List<PhotoByTagDto> photos = new ArrayList<>();
+        for (Photo photo: photosFromDb) {
+            PhotoByTagDto photoByTagDto = PhotoByTagDto.builder()
+                    .photoId(photo.getPhotoId())
+                    .name(photo.getName())
+                    .url(photo.getUrl())
+                    .tag(photo.getTag())
+                    .username(photo.getAlbum().getUser().getUsername())
+                    .build();
+            photos.add(photoByTagDto);
+        }
+
+        return photos;
     }
 }
