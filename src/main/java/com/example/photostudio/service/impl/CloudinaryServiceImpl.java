@@ -1,6 +1,7 @@
 package com.example.photostudio.service.impl;
 
 import com.cloudinary.Cloudinary;
+import com.example.photostudio.dto.CloudImageDto;
 import com.example.photostudio.service.CloudinaryService;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class CloudinaryServiceImpl implements CloudinaryService {
     private final Logger logger = Logger.getLogger(CloudinaryService.class.getName());
 
     @Override
-    public String upload(MultipartFile file) {
+    public CloudImageDto upload(MultipartFile file) {
         try {
             HashMap<Object, Object> options = new HashMap<>();
             options.put("folder", "my-gallery");
@@ -28,7 +29,20 @@ public class CloudinaryServiceImpl implements CloudinaryService {
             String publicId = (String) uploadedFile.get("public_id");
             String url = cloudinary.url().secure(true).generate(publicId);
             logger.info("URL = " + url);
-            return url;
+            return new CloudImageDto(url, publicId);
+        } catch (IOException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+    @Override
+    public boolean delete(String publicId) {
+        try {
+            HashMap<Object, Object> options = new HashMap<>();
+            options.put("folder", "my-gallery");
+            cloudinary.uploader().destroy(publicId, options);
+            return true;
         } catch (IOException e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage());

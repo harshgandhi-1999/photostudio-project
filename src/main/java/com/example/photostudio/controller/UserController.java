@@ -52,11 +52,4 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(albumListDto);
     }
 
-
-    @PostMapping(value = "/profile/image-upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-    public ResponseEntity<String> uploadProfileImage(@RequestParam MultipartFile file) {
-        String url = cloudinaryService.upload(file);
-        return ResponseEntity.status(HttpStatus.OK).body("File uploaded successfully, Url: ");
-    }
-
 }

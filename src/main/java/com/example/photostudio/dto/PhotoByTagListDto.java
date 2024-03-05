@@ -2,15 +2,14 @@ package com.example.photostudio.dto;
 
 import lombok.*;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @ToString
-public class PhotoDto {
-    private Integer photoId;
-    private String name;
-    private String url;
-    private String tag;
+public class PhotoByTagListDto {
+    private List<PhotoByTagDto> photos;
 }

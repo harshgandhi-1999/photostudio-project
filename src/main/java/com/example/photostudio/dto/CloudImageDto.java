@@ -8,9 +8,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
-public class PhotoDto {
-    private Integer photoId;
-    private String name;
+public class CloudImageDto {
     private String url;
-    private String tag;
+    private String publicId;
 }

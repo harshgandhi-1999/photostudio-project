@@ -1,16 +1,12 @@
 package com.example.photostudio.controller;
 
-import com.example.photostudio.dto.PhotoByTagDto;
-import com.example.photostudio.dto.PhotoUploadDto;
-import com.example.photostudio.dto.PhotoUploadResponseDto;
+import com.example.photostudio.dto.*;
 import com.example.photostudio.service.PhotoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/photo")
@@ -25,9 +21,15 @@ public class PhotoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(photoUploadResponseDto);
     }
 
+    @DeleteMapping(value = "/delete")
+    public ResponseEntity<ResponseDto> deletePhoto(@RequestParam Integer photoId, @RequestParam String username) {
+        ResponseDto responseDto = photoService.deletePhoto(photoId, username);
+        return ResponseEntity.status(HttpStatus.OK).body(responseDto);
+    }
+
     @GetMapping
-    public ResponseEntity<List<PhotoByTagDto>> getAllPhotosByTag(@RequestParam String tag){
-        List<PhotoByTagDto> photos = photoService.getAllPhotosByTag(tag);
+    public ResponseEntity<PhotoByTagListDto> getAllPhotosByTag(@RequestParam String tag) {
+        PhotoByTagListDto photos = photoService.getAllPhotosByTag(tag);
         return ResponseEntity.status(HttpStatus.OK).body(photos);
     }
 }

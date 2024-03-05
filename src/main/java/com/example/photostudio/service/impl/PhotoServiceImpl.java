@@ -14,7 +14,6 @@ import com.example.photostudio.service.CloudinaryService;
 import com.example.photostudio.service.PhotoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -61,7 +60,7 @@ public class PhotoServiceImpl implements PhotoService {
         }
 
         // upload photo to cloud storage
-        String url = cloudinaryService.upload(photoUploadDto.getFile());
+        CloudImageDto cloudImageDto = cloudinaryService.upload(photoUploadDto.getFile());
 
         Album album = optionalAlbum.get();
 
@@ -69,7 +68,8 @@ public class PhotoServiceImpl implements PhotoService {
         Photo photo = Photo.builder()
                 .tag(photoUploadDto.getTag())
                 .name(photoUploadDto.getFile().getOriginalFilename())
-                .url(url)
+                .url(cloudImageDto.getUrl())
+                .publicId(cloudImageDto.getPublicId())
                 .album(album)
                 .build();
         album.getPhotos().add(photo);
@@ -84,15 +84,49 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
-    public List<PhotoByTagDto> getAllPhotosByTag(String tag) {
-        if(tag==null || tag.isEmpty()){
-            throw new ResourceNotFoundException("Photo","tag",null);
+    public ResponseDto deletePhoto(Integer photoId, String username) {
+        logger.info("DELETE PHOTO");
+        Optional<User> optionalUser = userRepository.findByUsername(username);
+
+        if (optionalUser.isEmpty()) {
+            throw new ResourceNotFoundException("User", "username", username);
+        }
+
+        Optional<Photo> optionalPhoto = photoRepository.findById(photoId);
+        if (optionalPhoto.isEmpty()) {
+            throw new ResourceNotFoundException("Photo", "photoId", photoId.toString());
+        }
+
+        Photo photo = optionalPhoto.get();
+        if (!Objects.equals(photo.getAlbum().getUser().getUsername(), username)) {
+            throw new ResourceNotFoundException("Photo", "photoId", photoId.toString());
+        }
+
+        // delete photo from cloud storage.
+        boolean photoDeleted = cloudinaryService.delete(photo.getPublicId());
+        if (!photoDeleted) {
+            throw new RuntimeException("Unable to delete photo with photoId: " + photoId);
+        }
+
+
+        // delete photo from db
+        photoRepository.delete(photo);
+
+        // generate response
+        return new ResponseDto(HttpStatus.OK.toString(), "Photo deleted successfully");
+    }
+
+    @Override
+    public PhotoByTagListDto getAllPhotosByTag(String tag) {
+        logger.info("GET ALL PHOTOS BY TAG");
+        if (tag == null || tag.isEmpty()) {
+            throw new ResourceNotFoundException("Photo", "tag", null);
         }
 
         List<Photo> photosFromDb = photoRepository.findAllByTag(tag);
 
         List<PhotoByTagDto> photos = new ArrayList<>();
-        for (Photo photo: photosFromDb) {
+        for (Photo photo : photosFromDb) {
             PhotoByTagDto photoByTagDto = PhotoByTagDto.builder()
                     .photoId(photo.getPhotoId())
                     .name(photo.getName())
@@ -103,6 +137,6 @@ public class PhotoServiceImpl implements PhotoService {
             photos.add(photoByTagDto);
         }
 
-        return photos;
+        return new PhotoByTagListDto(photos);
     }
 }

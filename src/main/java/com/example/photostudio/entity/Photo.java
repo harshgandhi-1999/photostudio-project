@@ -19,6 +19,8 @@ public class Photo {
 
     private String url;
 
+    private String publicId;
+
     private String tag;
 
     @ManyToOne(fetch = FetchType.LAZY)
