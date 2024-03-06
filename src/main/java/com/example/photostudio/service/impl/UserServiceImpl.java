@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -40,30 +41,31 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean updateUserProfile(String username, UserProfileDto newProfile) {
         logger.info("UPDATE_USER_PROFILE");
-        Optional<User> currentUser = userRepository.findByUsername(username);
+        Optional<User> optionalCurrentUser = userRepository.findByUsername(username);
 
-        if (currentUser.isEmpty()) {
+        if (optionalCurrentUser.isEmpty()) {
             throw new ResourceNotFoundException("User", "username", username);
         }
 
-        //check if new profile username already is taken by some other
-        // if exist then we can't set username
-        Optional<User> existingUser = userRepository.findByUsername(newProfile.getUsername());
-        if (existingUser.isPresent()) {
-            throw new UserAlreadyExistException(newProfile.getUsername());
+        User currentUser = optionalCurrentUser.get();
+
+        if (newProfile.getUsername() != null && !Objects.equals(newProfile.getUsername(), currentUser.getUsername())) {
+            //check if new profile username already is taken by some other
+            // if exist then we can't set username
+            Optional<User> existingUser = userRepository.findByUsername(newProfile.getUsername());
+            if (existingUser.isPresent()) {
+                throw new UserAlreadyExistException(newProfile.getUsername());
+            }
+            currentUser.setUsername(newProfile.getUsername());
+        }
+        if (newProfile.getName() != null) {
+            currentUser.setName(newProfile.getName());
+        }
+        if (newProfile.getEmail() != null) {
+            currentUser.setEmail(newProfile.getEmail());
         }
 
-        User.UserBuilder userBuilder = currentUser.get().toBuilder();
-
-        User updatedUser = userBuilder
-                .username(newProfile.getUsername())
-                .name(newProfile.getName())
-                .email(newProfile.getEmail())
-                .build();
-
-        logger.info("Updated user = " + updatedUser);
-
-        userRepository.save(updatedUser);
+        userRepository.save(currentUser);
 
         return true;
     }
@@ -84,6 +86,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public AlbumListDto getAllUserAlbums(String username) {
+        logger.info("GET ALL USER ALBUMS");
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isEmpty()) {
             throw new UsernameNotFoundException("User not found with username: " + username);

@@ -25,6 +25,6 @@ public class Album {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @OneToMany(cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.REFRESH, CascadeType.REMOVE}, fetch = FetchType.EAGER, mappedBy = "album")
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER, mappedBy = "album",orphanRemoval = true)
     private List<Photo> photos;
 }

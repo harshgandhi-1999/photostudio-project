@@ -102,24 +102,43 @@ public class AlbumServiceImpl implements AlbumService {
             throw new ResourceNotFoundException("User", "username", username);
         }
 
-        Optional<Album> optionalAlbum = albumRepository.findByAlbumIdAndUser(albumId, optionalUser.get());
-        if (optionalAlbum.isEmpty()) {
+        User user = optionalUser.get();
+
+        Optional<Album> albumToRemove = user.getAlbums().stream().filter(x -> Objects.equals(x.getAlbumId(), albumId)).findFirst();
+
+        if (albumToRemove.isEmpty()) {
             throw new ResourceNotFoundException("Album", "albumId", albumId.toString());
         }
 
-        Album album = optionalAlbum.get();
-
-        //check if the album name is "default" then don't delete
-        if (Objects.equals(album.getAlbumName(), "default")) {
-            throw new CannotPerformOperationException("DELETE", "album", "albumName", album.getAlbumName());
+        if (Objects.equals(albumToRemove.get().getAlbumName(), "default")) {
+            throw new CannotPerformOperationException("DELETE", "album", "albumName", "default");
         }
 
-        logger.info("ALBUM TO DELETE: " + album.getAlbumId() + ", " + album.getAlbumName() + ", " + album.getUser().getUserId());
+        // remove album from user's album list
+        user.getAlbums().remove(albumToRemove.get());
+
+        userRepository.save(user);
+
+        /*Optional<Album> optionalAlbum = albumRepository.findByAlbumIdAndUser(albumId, optionalUser.get());
+        if (optionalAlbum.isEmpty()) {
+            throw new ResourceNotFoundException("Album", "albumId", albumId.toString());
+        }*/
+
+
+        // Album album = optionalAlbum.get();
+
+        //check if the album name is "default" then don't delete
+
+//        if(Objects.equals(albumToRemove.get().getAlbumName(), "default")){
+//            throw new CannotPerformOperationException("DELETE","album","albumName","default");
+//        }
+        //  logger.info("ALBUM TO DELETE: " + album.getAlbumId() + ", " + album.getAlbumName() + ", " + album.getUser().getUserId());
 
         // delete
         // you need to remove cascade type PERSIST from  parent entity to below line to work
+        // but if we remove PERSIST then we will not be able to create default album at the time of user signup
         // https://stackoverflow.com/questions/29172313/spring-data-repository-does-not-delete-manytoone-entity
-        albumRepository.delete(album);
+        //albumRepository.delete(album);
 
         // generate response
         return new ResponseDto(HttpStatus.OK.toString(), "Album deleted successfully");

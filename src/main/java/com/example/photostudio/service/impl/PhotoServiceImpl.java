@@ -108,9 +108,12 @@ public class PhotoServiceImpl implements PhotoService {
             throw new RuntimeException("Unable to delete photo with photoId: " + photoId);
         }
 
+        Album album = photo.getAlbum();
 
-        // delete photo from db
-        photoRepository.delete(photo);
+        // remove photo from album's photo list
+        album.getPhotos().remove(photo);
+
+        albumRepository.save(album);
 
         // generate response
         return new ResponseDto(HttpStatus.OK.toString(), "Photo deleted successfully");

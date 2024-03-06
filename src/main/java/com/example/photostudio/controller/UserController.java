@@ -7,10 +7,8 @@ import com.example.photostudio.service.CloudinaryService;
 import com.example.photostudio.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api/user")
@@ -35,7 +33,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(profile);
     }
 
-    @PutMapping("/profile")
+    @PatchMapping("/profile")
     public ResponseEntity<ResponseDto> updateProfile(@RequestBody UserProfileDto newProfile, @RequestParam String username) {
         boolean profileUpdated = userService.updateUserProfile(username, newProfile);
 
