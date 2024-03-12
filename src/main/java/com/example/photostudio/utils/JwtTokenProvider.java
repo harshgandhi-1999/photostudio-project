@@ -1,6 +1,5 @@
 package com.example.photostudio.utils;
 
-import com.example.photostudio.dto.UserProfileDto;
 import com.example.photostudio.service.UserService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -48,16 +47,15 @@ public class JwtTokenProvider {
         return null;
     }
 
-    public boolean validateToken(HttpServletRequest request,UserDetails userDetails,String token) throws JwtException, IllegalArgumentException {
+    public boolean validateToken(UserDetails userDetails,String token) throws JwtException, IllegalArgumentException {
         Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(token);
         String username = extractUsername(token);
-        String usernameQueryParam = request.getParameter("username");
 
-        if(username==null || usernameQueryParam==null || userDetails==null){
+        if(username==null || userDetails==null){
             return false;
         }
 
-        return username.equals(usernameQueryParam) && username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {

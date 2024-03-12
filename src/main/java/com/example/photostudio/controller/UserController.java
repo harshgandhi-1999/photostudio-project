@@ -1,17 +1,23 @@
 package com.example.photostudio.controller;
 
 import com.example.photostudio.dto.AlbumListDto;
+import com.example.photostudio.dto.ProfileToUpdateDto;
 import com.example.photostudio.dto.ResponseDto;
 import com.example.photostudio.dto.UserProfileDto;
 import com.example.photostudio.service.CloudinaryService;
 import com.example.photostudio.service.UserService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/user")
+@Validated
 public class UserController {
 
     @Autowired
@@ -26,16 +32,16 @@ public class UserController {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<UserProfileDto> getProfile(@RequestParam String username) {
-
+    public ResponseEntity<UserProfileDto> getProfile(Authentication authentication, @RequestParam @NotEmpty(message = "username cannot be empty or null") String username) {
+        // for finding profile of any user
         UserProfileDto profile = userService.getUserProfile(username);
 
         return ResponseEntity.status(HttpStatus.OK).body(profile);
     }
 
-    @PatchMapping("/profile")
-    public ResponseEntity<ResponseDto> updateProfile(@RequestBody UserProfileDto newProfile, @RequestParam String username) {
-        boolean profileUpdated = userService.updateUserProfile(username, newProfile);
+    @PutMapping("/profile")
+    public ResponseEntity<ResponseDto> updateProfile(Authentication authentication, @Valid @RequestBody ProfileToUpdateDto newProfile) {
+        boolean profileUpdated = userService.updateUserProfile(authentication, newProfile);
 
         if (profileUpdated) {
             return ResponseEntity.status(HttpStatus.OK).body(new ResponseDto(HttpStatus.OK.toString(), "Profile Updated successfully"));
@@ -45,8 +51,8 @@ public class UserController {
     }
 
     @GetMapping("/albums")
-    public ResponseEntity<AlbumListDto> getAlbums(@RequestParam String username) {
-        AlbumListDto albumListDto = userService.getAllUserAlbums(username);
+    public ResponseEntity<AlbumListDto> getAlbums(Authentication authentication) {
+        AlbumListDto albumListDto = userService.getAllUserAlbums(authentication);
         return ResponseEntity.status(HttpStatus.OK).body(albumListDto);
     }
 

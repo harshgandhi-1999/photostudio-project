@@ -11,6 +11,8 @@ import com.example.photostudio.repository.UserRepository;
 import com.example.photostudio.service.AlbumService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.Objects;
@@ -32,13 +34,15 @@ public class AlbumServiceImpl implements AlbumService {
     private final Logger logger = Logger.getLogger(AlbumService.class.getName());
 
     @Override
-    public AlbumResponseDto createNewAlbum(AlbumRequestDto albumRequestDto, String username) {
+    public AlbumResponseDto createNewAlbum(Authentication authentication, AlbumRequestDto albumRequestDto) {
         logger.info("CREATE NEW ALBUM");
-        Optional<User> optionalUser = userRepository.findByUsername(username);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
         if (optionalUser.isEmpty()) {
-            throw new ResourceNotFoundException("User", "username", username);
+            throw new ResourceNotFoundException("User", "username", userDetails.getUsername());
         }
+
         User user = optionalUser.get();
         Album album = Album.builder()
                 .albumName(albumRequestDto.getAlbumName())
@@ -58,12 +62,13 @@ public class AlbumServiceImpl implements AlbumService {
     }
 
     @Override
-    public AlbumResponseDto updateAlbum(AlbumDto albumDto, String username) {
+    public AlbumResponseDto updateAlbum(Authentication authentication, AlbumDto albumDto) {
         logger.info("UPDATE ALBUM");
-        Optional<User> optionalUser = userRepository.findByUsername(username);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
         if (optionalUser.isEmpty()) {
-            throw new ResourceNotFoundException("User", "username", username);
+            throw new ResourceNotFoundException("User", "username", userDetails.getUsername());
         }
 
         // Imp: we need to do findByAlbumIdAndUser because by chance some other albumId is passed which of some other user and if we do findById on albumId
@@ -94,12 +99,13 @@ public class AlbumServiceImpl implements AlbumService {
     }
 
     @Override
-    public ResponseDto deleteAlbum(Integer albumId, String username) {
+    public ResponseDto deleteAlbum(Authentication authentication, Integer albumId) {
         logger.info("DELETE ALBUM");
-        Optional<User> optionalUser = userRepository.findByUsername(username);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
         if (optionalUser.isEmpty()) {
-            throw new ResourceNotFoundException("User", "username", username);
+            throw new ResourceNotFoundException("User", "username", userDetails.getUsername());
         }
 
         User user = optionalUser.get();
@@ -145,12 +151,13 @@ public class AlbumServiceImpl implements AlbumService {
     }
 
     @Override
-    public PhotoListDto getAllPhotos(Integer albumId, String username) {
+    public PhotoListDto getAllPhotos(Authentication authentication, Integer albumId) {
         logger.info("GET ALL PHOTOS");
-        Optional<User> optionalUser = userRepository.findByUsername(username);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
         if (optionalUser.isEmpty()) {
-            throw new ResourceNotFoundException("User", "username", username);
+            throw new ResourceNotFoundException("User", "username", userDetails.getUsername());
         }
 
         Optional<Album> optionalAlbum = albumRepository.findByAlbumIdAndUser(albumId, optionalUser.get());

@@ -8,6 +8,7 @@ import lombok.*;
 @Getter
 @Setter
 @ToString
+@Builder(toBuilder = true)
 public class UserProfileDto {
     private String name;
     private String username;

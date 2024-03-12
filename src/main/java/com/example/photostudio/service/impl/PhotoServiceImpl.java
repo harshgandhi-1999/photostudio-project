@@ -14,6 +14,8 @@ import com.example.photostudio.service.CloudinaryService;
 import com.example.photostudio.service.PhotoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -43,15 +45,15 @@ public class PhotoServiceImpl implements PhotoService {
     private final Logger logger = Logger.getLogger(PhotoService.class.getName());
 
     @Override
-    public PhotoUploadResponseDto uploadPhoto(PhotoUploadDto photoUploadDto, Integer albumId, String username) {
+    public PhotoUploadResponseDto uploadPhoto(Authentication authentication, PhotoUploadDto photoUploadDto, Integer albumId) {
         if (photoUploadDto.getFile().isEmpty()) {
             throw new CannotPerformOperationException("UPLOAD", "photo", "file", null);
         }
-
-        Optional<User> optionalUser = userRepository.findByUsername(username);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
         if (optionalUser.isEmpty()) {
-            throw new ResourceNotFoundException("User", "username", username);
+            throw new ResourceNotFoundException("User", "username", userDetails.getUsername());
         }
         User user = optionalUser.get();
         Optional<Album> optionalAlbum = albumRepository.findByAlbumIdAndUser(albumId, user);
@@ -84,12 +86,13 @@ public class PhotoServiceImpl implements PhotoService {
     }
 
     @Override
-    public ResponseDto deletePhoto(Integer photoId, String username) {
+    public ResponseDto deletePhoto(Authentication authentication, Integer photoId) {
         logger.info("DELETE PHOTO");
-        Optional<User> optionalUser = userRepository.findByUsername(username);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
 
         if (optionalUser.isEmpty()) {
-            throw new ResourceNotFoundException("User", "username", username);
+            throw new ResourceNotFoundException("User", "username", userDetails.getUsername());
         }
 
         Optional<Photo> optionalPhoto = photoRepository.findById(photoId);
@@ -98,7 +101,7 @@ public class PhotoServiceImpl implements PhotoService {
         }
 
         Photo photo = optionalPhoto.get();
-        if (!Objects.equals(photo.getAlbum().getUser().getUsername(), username)) {
+        if (!Objects.equals(photo.getAlbum().getUser().getUsername(), userDetails.getUsername())) {
             throw new ResourceNotFoundException("Photo", "photoId", photoId.toString());
         }
 

@@ -21,6 +21,7 @@ public class User implements Serializable {
     @Column(name = "username", unique = true, nullable = false)
     private String username;
 
+    @Column(length = 65) // for storing encoded bcrypt password
     private String password;
 
     private String name;

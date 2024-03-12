@@ -1,19 +1,19 @@
 package com.example.photostudio.service.impl;
 
 import com.example.photostudio.dto.AlbumListDto;
+import com.example.photostudio.dto.ProfileToUpdateDto;
 import com.example.photostudio.dto.UserProfileDto;
 import com.example.photostudio.entity.User;
 import com.example.photostudio.exception.ResourceNotFoundException;
-import com.example.photostudio.exception.UserAlreadyExistException;
 import com.example.photostudio.mapper.UserMapper;
 import com.example.photostudio.repository.UserRepository;
 import com.example.photostudio.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -39,25 +39,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean updateUserProfile(String username, UserProfileDto newProfile) {
+    public boolean updateUserProfile(Authentication authentication, ProfileToUpdateDto newProfile) {
         logger.info("UPDATE_USER_PROFILE");
-        Optional<User> optionalCurrentUser = userRepository.findByUsername(username);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
-        if (optionalCurrentUser.isEmpty()) {
-            throw new ResourceNotFoundException("User", "username", username);
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+        if (optionalUser.isEmpty()) {
+            throw new ResourceNotFoundException("User", "username", userDetails.getUsername());
         }
 
-        User currentUser = optionalCurrentUser.get();
+        User currentUser = optionalUser.get();
 
-        if (newProfile.getUsername() != null && !Objects.equals(newProfile.getUsername(), currentUser.getUsername())) {
-            //check if new profile username already is taken by some other
-            // if exist then we can't set username
-            Optional<User> existingUser = userRepository.findByUsername(newProfile.getUsername());
-            if (existingUser.isPresent()) {
-                throw new UserAlreadyExistException(newProfile.getUsername());
-            }
-            currentUser.setUsername(newProfile.getUsername());
-        }
         if (newProfile.getName() != null) {
             currentUser.setName(newProfile.getName());
         }
@@ -85,11 +77,12 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public AlbumListDto getAllUserAlbums(String username) {
+    public AlbumListDto getAllUserAlbums(Authentication authentication) {
         logger.info("GET ALL USER ALBUMS");
-        Optional<User> optionalUser = userRepository.findByUsername(username);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
         if (optionalUser.isEmpty()) {
-            throw new UsernameNotFoundException("User not found with username: " + username);
+            throw new UsernameNotFoundException("User not found with username: " + userDetails.getUsername());
         }
 
         return userMapper.userToAlbumListDto(optionalUser.get());
