@@ -1,10 +1,12 @@
 package com.example.photostudio.service.impl;
 
-import com.example.photostudio.dto.*;
+import com.example.photostudio.dto.LoginRequestDto;
+import com.example.photostudio.dto.LoginResponseDto;
+import com.example.photostudio.dto.SignupRequestDto;
+import com.example.photostudio.dto.UserProfileDto;
 import com.example.photostudio.entity.Album;
 import com.example.photostudio.entity.User;
 import com.example.photostudio.exception.AuthenticationFailedException;
-import com.example.photostudio.exception.ResourceNotFoundException;
 import com.example.photostudio.exception.UserAlreadyExistException;
 import com.example.photostudio.mapper.UserMapper;
 import com.example.photostudio.repository.AlbumRepository;
@@ -15,12 +17,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 @Service
@@ -51,22 +53,24 @@ public class AuthServiceImpl implements AuthService {
         logger.info("AUTHENTICATE USER SERVICE");
 
         try {
-            Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(loginRequestDto.getUsername(), loginRequestDto.getPassword()));
-            logger.info("Principal = " + authentication.getPrincipal() + " \n Credentials = " + authentication.getCredentials());
-            if (authentication.isAuthenticated()) {
-                logger.info("AUTHENTICATED");
-            } else {
-                throw new AuthenticationFailedException("Username or Password is incorrect");
-            }
 
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            Optional<User> optionalUser = userRepository.findByUsername(userDetails.getUsername());
+            String username = loginRequestDto.getUsername();
+            String password = loginRequestDto.getPassword();
 
-            if (optionalUser.isEmpty()) {
-                throw new ResourceNotFoundException("User", "username", userDetails.getUsername());
-            }
+            // using spring boot authentication manager to validate user is present in db, but we can also do it manually
+            // create a unauthenticated object
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(username, password);
 
-            User user = optionalUser.get();
+            // Authenticate user (this checks the password via UserDetailsService + PasswordEncoder)
+            // if it is not authenticated then exception will be thrown
+            Authentication authentication = authenticationManager.authenticate(authenticationToken);
+
+
+            // it returns object returned by UserDetailsService.loadUserByUsername() method i.e. User
+            User user = (User) authentication.getPrincipal();
+
+            // If successful, generate JWT token using username
+            String token = jwtTokenProvider.generateToken(username, new ArrayList<>());
 
             UserProfileDto userProfileDto = UserProfileDto.builder()
                     .name(user.getName())
@@ -74,12 +78,11 @@ public class AuthServiceImpl implements AuthService {
                     .email(user.getEmail())
                     .build();
 
-            // generate token
-            String token = jwtTokenProvider.generateToken(userDetails.getUsername());
-            //logger.info("Token: " + token);
+
             return new LoginResponseDto(userProfileDto, token);
-        } catch (AuthenticationException exc) {
+        } catch (Exception exc) {
             // if username or password is incorrect then exception will be raised
+            logger.info(exc.getLocalizedMessage());
             throw new AuthenticationFailedException("Username or Password is incorrect");
         }
     }

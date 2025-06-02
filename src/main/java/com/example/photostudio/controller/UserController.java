@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -41,7 +42,8 @@ public class UserController {
 
     @PutMapping("/profile")
     public ResponseEntity<ResponseDto> updateProfile(Authentication authentication, @Valid @RequestBody ProfileToUpdateDto newProfile) {
-        boolean profileUpdated = userService.updateUserProfile(authentication, newProfile);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        boolean profileUpdated = userService.updateUserProfile(userDetails.getUsername(), newProfile);
 
         if (profileUpdated) {
             return ResponseEntity.status(HttpStatus.OK).body(new ResponseDto(HttpStatus.OK.toString(), "Profile Updated successfully"));
@@ -52,7 +54,8 @@ public class UserController {
 
     @GetMapping("/albums")
     public ResponseEntity<AlbumListDto> getAlbums(Authentication authentication) {
-        AlbumListDto albumListDto = userService.getAllUserAlbums(authentication);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        AlbumListDto albumListDto = userService.getAllUserAlbums(userDetails.getUsername());
         return ResponseEntity.status(HttpStatus.OK).body(albumListDto);
     }
 
