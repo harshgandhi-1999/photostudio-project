@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetails;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -46,7 +48,14 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         String username = jwtTokenProvider.getUsername(token);
 
-        Authentication auth = new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
+
+        UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(username, null, new ArrayList<>());
+
+        // you can also remove below line of addDetails, this is added if we have to later want some request details in the authentication
+        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+
+        // Set security context
         SecurityContextHolder.getContext().setAuthentication(auth);
 
         filterChain.doFilter(request, response);

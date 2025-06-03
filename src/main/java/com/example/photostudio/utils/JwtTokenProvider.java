@@ -7,11 +7,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.List;
+import java.util.function.Function;
 import java.util.logging.Logger;
 
 @Component
 public class JwtTokenProvider {
-    private static final String AUTHORIZATION = "Authorization";
 
     private static final Logger logger = Logger.getLogger(JwtTokenProvider.class.getName());
 
@@ -53,29 +53,31 @@ public class JwtTokenProvider {
     }
 
     public String getUsername(String token) {
-        return Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(token).getBody().getSubject();
+        return extractClaim(token, Claims::getSubject);
     }
 
-    public List<String> getRoles(String token) {
-        Claims claims = Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(token).getBody();
-        return claims.get("roles", List.class);
-    }
-
- /* private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
-    private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+    private <R> R extractClaim(String token, Function<Claims, R> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
 
     private Claims extractAllClaims(String token) {
         return Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(token).getBody();
+    }
+
+ /*
+    public List<String> getRoles(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("roles", List.class);
+    }
+
+    // not needed this method is because token expiration is already handled in extractAllClaims and it throws exception if token expires
+     private boolean isTokenExpired(String token) {
+        return extractExpiration(token).before(new Date());
+    }
+
+    private Date extractExpiration(String token) {
+        return extractClaim(token, Claims::getExpiration);
     }
 
     private List<SimpleGrantedAuthority> getRolesFromToken(String token) {
