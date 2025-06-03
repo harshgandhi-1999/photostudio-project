@@ -28,7 +28,8 @@ public class UserController {
     private CloudinaryService cloudinaryService;
 
     @GetMapping("/hello")
-    public String sayHello() {
+    public String sayHello(Authentication authentication) {
+        //System.out.println(authentication.getAuthorities());
         return "Hello world";
     }
 

@@ -70,7 +70,7 @@ public class AuthServiceImpl implements AuthService {
             User user = (User) authentication.getPrincipal();
 
             // If successful, generate JWT token using username
-            String token = jwtTokenProvider.generateToken(username, new ArrayList<>());
+            String token = jwtTokenProvider.generateToken(username, List.of("ROLE_USER"));
 
             UserProfileDto userProfileDto = UserProfileDto.builder()
                     .name(user.getName())

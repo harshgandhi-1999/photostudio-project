@@ -6,7 +6,9 @@ import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.logging.Logger;
 
@@ -22,10 +24,10 @@ public class JwtTokenProvider {
     private long EXPIRATION_TIME;
 
     public String generateToken(String username, List<String> roles) {
-//        Map<String, Object> claims = new HashMap<>();
-//        claims.put("roles", roles);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("roles", roles);
         return Jwts.builder()
-//                .setClaims(claims)
+                .setClaims(claims)
                 .setSubject(username)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
@@ -65,12 +67,12 @@ public class JwtTokenProvider {
         return Jwts.parser().setSigningKey(JWT_SECRET).parseClaimsJws(token).getBody();
     }
 
- /*
     public List<String> getRoles(String token) {
         Claims claims = extractAllClaims(token);
-        return claims.get("roles", List.class);
+        return (List<String>) claims.get("roles");
     }
 
+ /*
     // not needed this method is because token expiration is already handled in extractAllClaims and it throws exception if token expires
      private boolean isTokenExpired(String token) {
         return extractExpiration(token).before(new Date());
