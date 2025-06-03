@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -22,13 +23,15 @@ public class PhotoController {
 
     @PostMapping(value = "/upload", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
     public ResponseEntity<PhotoUploadResponseDto> uploadPhoto(Authentication authentication, @Valid @ModelAttribute PhotoUploadDto photoUploadDto, @RequestParam Integer albumId) {
-        PhotoUploadResponseDto photoUploadResponseDto = photoService.uploadPhoto(authentication, photoUploadDto, albumId);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        PhotoUploadResponseDto photoUploadResponseDto = photoService.uploadPhoto(userDetails.getUsername(), photoUploadDto, albumId);
         return ResponseEntity.status(HttpStatus.CREATED).body(photoUploadResponseDto);
     }
 
     @DeleteMapping(value = "/delete")
     public ResponseEntity<ResponseDto> deletePhoto(Authentication authentication, @RequestParam Integer photoId) {
-        ResponseDto responseDto = photoService.deletePhoto(authentication, photoId);
+        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+        ResponseDto responseDto = photoService.deletePhoto(userDetails.getUsername(), photoId);
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 

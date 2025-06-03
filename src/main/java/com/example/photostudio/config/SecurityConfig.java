@@ -36,7 +36,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/api/photo").permitAll()
-                        .requestMatchers("/api/user/hello").hasRole("USER")  // is you use any other role than this endpoint will not work
+                        .requestMatchers("/api/user/hello").hasRole("ADMIN")  // is you use any other role than this endpoint will not work
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
