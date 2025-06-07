@@ -7,12 +7,10 @@ import com.example.photostudio.dto.UserProfileDto;
 import com.example.photostudio.service.CloudinaryService;
 import com.example.photostudio.service.UserService;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotEmpty;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -34,7 +32,8 @@ public class UserController {
     }
 
     @GetMapping("/profile")
-    public ResponseEntity<UserProfileDto> getProfile(Authentication authentication, @RequestParam @NotEmpty(message = "username cannot be empty or null") String username) {
+    public ResponseEntity<UserProfileDto> getProfile(Authentication authentication) {
+        String username = (String) authentication.getPrincipal();
         // for finding profile of any user
         UserProfileDto profile = userService.getUserProfile(username);
 
@@ -43,8 +42,8 @@ public class UserController {
 
     @PutMapping("/profile")
     public ResponseEntity<ResponseDto> updateProfile(Authentication authentication, @Valid @RequestBody ProfileToUpdateDto newProfile) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        boolean profileUpdated = userService.updateUserProfile(userDetails.getUsername(), newProfile);
+        String username = (String) authentication.getPrincipal();
+        boolean profileUpdated = userService.updateUserProfile(username, newProfile);
 
         if (profileUpdated) {
             return ResponseEntity.status(HttpStatus.OK).body(new ResponseDto(HttpStatus.OK.toString(), "Profile Updated successfully"));
@@ -55,8 +54,8 @@ public class UserController {
 
     @GetMapping("/albums")
     public ResponseEntity<AlbumListDto> getAlbums(Authentication authentication) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        AlbumListDto albumListDto = userService.getAllUserAlbums(userDetails.getUsername());
+        String username = (String) authentication.getPrincipal();
+        AlbumListDto albumListDto = userService.getAllUserAlbums(username);
         return ResponseEntity.status(HttpStatus.OK).body(albumListDto);
     }
 

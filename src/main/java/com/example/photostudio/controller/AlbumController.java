@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -21,32 +20,32 @@ public class AlbumController {
 
     @PostMapping("/create")
     public ResponseEntity<AlbumResponseDto> createAlbum(Authentication authentication, @Valid @RequestBody AlbumRequestDto albumRequestDto) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        AlbumResponseDto albumResponseDto = albumService.createNewAlbum(userDetails.getUsername(), albumRequestDto);
+        String username = (String) authentication.getPrincipal();
+        AlbumResponseDto albumResponseDto = albumService.createNewAlbum(username, albumRequestDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(albumResponseDto);
     }
 
     @PutMapping("/update")
     public ResponseEntity<AlbumResponseDto> updateAlbum(Authentication authentication, @Valid @RequestBody AlbumDto albumDto) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        AlbumResponseDto albumResponseDto = albumService.updateAlbum(userDetails.getUsername(), albumDto);
+        String username = (String) authentication.getPrincipal();
+        AlbumResponseDto albumResponseDto = albumService.updateAlbum(username, albumDto);
 
         return ResponseEntity.status(HttpStatus.OK).body(albumResponseDto);
     }
 
     @DeleteMapping("/delete")
     public ResponseEntity<ResponseDto> deleteAlbum(Authentication authentication, @RequestParam Integer albumId) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        ResponseDto responseDto = albumService.deleteAlbum(userDetails.getUsername(), albumId);
+        String username = (String) authentication.getPrincipal();
+        ResponseDto responseDto = albumService.deleteAlbum(username, albumId);
 
         return ResponseEntity.status(HttpStatus.OK).body(responseDto);
     }
 
     @GetMapping("/photos")
     public ResponseEntity<PhotoListDto> getPhotos(Authentication authentication, @RequestParam Integer albumId) {
-        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-        PhotoListDto photoListDto = albumService.getAllPhotos(userDetails.getUsername(), albumId);
+        String username = (String) authentication.getPrincipal();
+        PhotoListDto photoListDto = albumService.getAllPhotos(username, albumId);
         return ResponseEntity.status(HttpStatus.OK).body(photoListDto);
     }
 }

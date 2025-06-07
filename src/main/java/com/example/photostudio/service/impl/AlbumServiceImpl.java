@@ -50,7 +50,11 @@ public class AlbumServiceImpl implements AlbumService {
         user.getAlbums().add(album);
 
         // save new album in db
-        album = albumRepository.save(album);
+        // album = albumRepository.save(album);
+
+        // Previously we were doing above step but we can also do below step
+        // save user in db , album will be automatically created as CascadeType.ALL is there
+        userRepository.save(user);
 
         // generate response
         AlbumDto albumDto = albumMapper.albumToAlbumDto(album);
@@ -67,29 +71,33 @@ public class AlbumServiceImpl implements AlbumService {
         if (optionalUser.isEmpty()) {
             throw new ResourceNotFoundException("User", "username", username);
         }
+        User user = optionalUser.get();
 
-        // Imp: we need to do findByAlbumIdAndUser because by chance some other albumId is passed which of some other user and if we do findById on albumId
-        // and then update, then some other user's album name will get updated.
+        Optional<Album> optionalAlbum = albumRepository.findById(albumDto.getAlbumId());
 
-        Optional<Album> optionalAlbum = albumRepository.findByAlbumIdAndUser(albumDto.getAlbumId(), optionalUser.get());
         if (optionalAlbum.isEmpty()) {
             throw new ResourceNotFoundException("Album", "albumId", albumDto.getAlbumId().toString());
         }
 
-        Album album = optionalAlbum.get();
+        Album albumToUpdate = optionalAlbum.get();
+
+        if (!albumToUpdate.getUser().getUserId().equals(user.getUserId())) {
+            throw new CannotPerformOperationException("UPDATE", "album", "albumName", "Album doesn't belong to you");
+        }
+
         //check if the album name is "default" then don't update
-        if (Objects.equals(album.getAlbumName(), "default")) {
-            throw new CannotPerformOperationException("UPDATE", "album", "albumName", album.getAlbumName());
+        if (Objects.equals(albumToUpdate.getAlbumName(), "default")) {
+            throw new CannotPerformOperationException("UPDATE", "album", "albumName", "You cannot update 'default' album");
         }
 
         // update album name
-        album.setAlbumName(albumDto.getAlbumName());
+        albumToUpdate.setAlbumName(albumDto.getAlbumName());
 
         // save updated album in db
-        album = albumRepository.save(album);
+        albumRepository.save(albumToUpdate);
 
         // generate response
-        albumDto = albumMapper.albumToAlbumDto(album);
+        albumDto = albumMapper.albumToAlbumDto(albumToUpdate);
         ResponseDto responseDto = new ResponseDto(HttpStatus.OK.toString(), "Album updated successfully");
 
         return new AlbumResponseDto(albumDto, responseDto);
@@ -106,41 +114,44 @@ public class AlbumServiceImpl implements AlbumService {
 
         User user = optionalUser.get();
 
-        Optional<Album> albumToRemove = user.getAlbums().stream().filter(x -> Objects.equals(x.getAlbumId(), albumId)).findFirst();
+//        Which approach to prefer - iterate over album list or query albumRepostiory
+//        ✅ Small album list? Use user.getAlbums().stream() — safer, single query.
+//
+//        ✅ Large album list? Use albumRepository.findById() — more efficient.
+//
+//        ✅ Use orphanRemoval inside User entity? Prefer user.getAlbums().remove(album) with setUser(null).
 
-        if (albumToRemove.isEmpty()) {
+        Optional<Album> optionalAlbum = albumRepository.findById(albumId);
+
+        //Optional<Album> albumToRemove = user.getAlbums().stream().filter(x -> Objects.equals(x.getAlbumId(), albumId)).findFirst();
+
+        if (optionalAlbum.isEmpty()) {
             throw new ResourceNotFoundException("Album", "albumId", albumId.toString());
         }
 
-        if (Objects.equals(albumToRemove.get().getAlbumName(), "default")) {
+        Album albumToRemove = optionalAlbum.get();
+
+        if (!albumToRemove.getUser().getUserId().equals(user.getUserId())) {
+            throw new CannotPerformOperationException("DELETE", "album", "albumName", "Album doesn't belong to you");
+        }
+
+        if (Objects.equals(albumToRemove.getAlbumName(), "default")) {
             throw new CannotPerformOperationException("DELETE", "album", "albumName", "default");
         }
 
+        if(!albumToRemove.getPhotos().isEmpty()){
+            throw new CannotPerformOperationException("DELETE","album","albumName","Album is not empty");
+        }
+
         // remove album from user's album list
-        user.getAlbums().remove(albumToRemove.get());
 
+        // cleaner code below line - instead of two lines here move this logic to user entity
+        user.removeAlbum(albumToRemove);
+        // albumToRemove.setUser(null);
+        // user.getAlbums().remove(albumToRemove);
+
+        // cascading will delete the album from album repo after saving user
         userRepository.save(user);
-
-        /*Optional<Album> optionalAlbum = albumRepository.findByAlbumIdAndUser(albumId, optionalUser.get());
-        if (optionalAlbum.isEmpty()) {
-            throw new ResourceNotFoundException("Album", "albumId", albumId.toString());
-        }*/
-
-
-        // Album album = optionalAlbum.get();
-
-        //check if the album name is "default" then don't delete
-
-//        if(Objects.equals(albumToRemove.get().getAlbumName(), "default")){
-//            throw new CannotPerformOperationException("DELETE","album","albumName","default");
-//        }
-        //  logger.info("ALBUM TO DELETE: " + album.getAlbumId() + ", " + album.getAlbumName() + ", " + album.getUser().getUserId());
-
-        // delete
-        // you need to remove cascade type PERSIST from  parent entity to below line to work
-        // but if we remove PERSIST then we will not be able to create default album at the time of user signup
-        // https://stackoverflow.com/questions/29172313/spring-data-repository-does-not-delete-manytoone-entity
-        //albumRepository.delete(album);
 
         // generate response
         return new ResponseDto(HttpStatus.OK.toString(), "Album deleted successfully");

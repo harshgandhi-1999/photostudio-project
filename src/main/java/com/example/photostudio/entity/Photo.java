@@ -1,5 +1,6 @@
 package com.example.photostudio.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -23,7 +24,8 @@ public class Photo {
 
     private String tag;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "album_id")
+    @JsonIgnore
     private Album album;
 }

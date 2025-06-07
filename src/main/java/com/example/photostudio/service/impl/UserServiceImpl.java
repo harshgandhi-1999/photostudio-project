@@ -52,7 +52,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public boolean updateUserProfile(String username, ProfileToUpdateDto newProfile) {
         logger.info("UPDATE_USER_PROFILE");
-//        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
 
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isEmpty()) {
@@ -76,7 +75,6 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     @Override
     public AlbumListDto getAllUserAlbums(String username) {
         logger.info("GET ALL USER ALBUMS");
-//        UserDetails userDetails = (UserDetails) authentication.getPrincipal();
         Optional<User> optionalUser = userRepository.findByUsername(username);
         if (optionalUser.isEmpty()) {
             throw new UsernameNotFoundException("User not found with username: " + username);

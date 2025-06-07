@@ -73,7 +73,7 @@ public class PhotoServiceImpl implements PhotoService {
                 .build();
         album.getPhotos().add(photo);
 
-        photo = photoRepository.save(photo);
+        albumRepository.save(album);
 
         // generate response
         PhotoDto photoDto = photoMapper.photoToPhotoDto(photo);
@@ -110,7 +110,7 @@ public class PhotoServiceImpl implements PhotoService {
         Album album = photo.getAlbum();
 
         // remove photo from album's photo list
-        album.getPhotos().remove(photo);
+        album.removePhoto(photo);
 
         albumRepository.save(album);
 
